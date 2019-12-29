@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+
+        body {
+            overflow: hidden;
+            margin: 0;
+        }
+
+    </style>
+    <script src="lib/three.js"></script>
+    <script src="lib/Detector.js"></script>
+    <script src="lib/THREEx.FullScreen.js"></script>
+    <script src="lib/THREEx.WindowResize.js"></script>
+    <script src="lib/Tween.js"></script>
+
+
+</head>
+<body>
+
+<div class="container">
+
+
+    <!--webGL-->
+    <div id="web-gl">
+
+    </div>
+</div>
+
+
+<script id="scriptScene0" type="text/javascript">
+
+    var scene, camera, renderer;
+    var target, weapon, currentColor;
+    var Ball;
+    var Balls = [];
+    var gold = 0, count = 0;
+    var tween;
+
+    Ball = new THREE.Mesh(new THREE.SphereGeometry(0.5, 8, 4), new THREE.MeshBasicMaterial({color: "aqua"}));
+    init();
+    animate();
+
+    function init() {
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 10000);
+        camera.position.set(0, 0, 1);
+        scene.add(camera);
+        renderer = new THREE.WebGLRenderer({antialias: true});
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+
+        var ambiColor = "#ffffff";
+        var ambientLight = new THREE.AmbientLight(ambiColor);
+
+        scene.add(ambientLight.clone());
+
+
+        var background = new THREE.Mesh(new THREE.SphereGeometry(1000, 90, 45), new THREE.MeshBasicMaterial({color: "gray", wireframe: true}));
+        scene.add(background);
+
+        weapon = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 5), new THREE.MeshBasicMaterial({color: 0x5555ff}));
+        weapon.position.set(2, -1, -2.5);
+        scene.add(weapon);
+
+        target = new THREE.Mesh(new THREE.BoxGeometry(5, 5, 1), new THREE.MeshBasicMaterial({color: 0xFF5555}));
+        target.position.set(2, -1, -30);
+        scene.add(target);
+
+        window.addEventListener("mousedown", onMouseDown);
+
+    }
+
+    function onMouseDown() {
+        var sphere = Ball.clone();
+        sphere.position.set(2, -1, -5);
+        sphere.rotateY(Math.PI);
+        Balls.push(sphere);
+        scene.add(sphere);
+
+        count++;
+
+
+        var goal = {x: 2, y: -1, z: -300};
+        tween = new TWEEN.Tween(sphere.position).to(goal, 1000);
+
+        tween.delay(10);
+        tween.easing(TWEEN.Easing.Quadratic.Out);
+        tween.start();
+    }
+
+    function collision() {
+        var originPoint = target.position.clone();
+        for (var vertexIndex = 0; vertexIndex < target.geometry.vertices.length; vertexIndex++) {
+            var localVertex = target.geometry.vertices[vertexIndex].clone();
+            var globalVertex = localVertex.applyMatrix4(target.matrix);
+            var directionVector = globalVertex.sub(target.position);
+
+            var ray = new THREE.Raycaster(originPoint, directionVector.clone().normalize());
+            var collisionResults = ray.intersectObjects(Balls);
+
+            if (collisionResults.length > 0 && collisionResults[0].distance < directionVector.length())
+            {
+                console.log("Collionnnnnnnn");
+                currentColor = target.material.color.getHex();
+                target.material.color.setHex(0x6beb34);
+                gold++;
+
+            }
+
+            //console.log(Balls.length);
+            //target.material.color.setHex(currentColor);
+        }
+    }
+
+
+    function animate() {
+
+        var t = (Date.now() / 1000);
+        TWEEN.update();
+        target.position.x = Math.sin(t + 2.5) * 30 + 5;
+
+        renderer.render(scene, camera);
+
+        if (count === 7) {
+            if (gold >= 1) document.write("WINNER :) ");
+            else if(gold===0) {
+                document.write(" LOSER :( ");
+
+            }
+        }
+        requestAnimationFrame(animate);
+        collision();
+
+
+    }
+
+</script>
+</body>
+</html>
