@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+      <title>My exercise</title>
+    <style>
+        body {
+        @include display(flex);
+        @include align-content(center);
+            color: #353535;
+            min-height: 100vh;
+            font-family: 'Open Sans', sans-serif;
+            font-size: 14px;
+            text-align: center;
+            background-color: lightgreen;
+            margin: 0 auto;
+            overflow: hidden;
+        }
+        .des{
+            margin-left: 40px;
+            margin-top: 40px;
+            position: absolute;
+            z-index: 10;
+        }
+        .container {
+            background-color: white;
+            box-shadow: 0 0 4px 1px #BBB;
+            text-align: center;
+            width: 100%;
+            height: 100%;
+        }
+        #web-gl {
+            height: 100%;
+            width: 100%;
+        }
+        .transform {
+            position: fixed;
+            width: 100%;
+            vertical-align: center;
+            top: 150px;
+            font-family: 'Lato';
+            font-size: 25px;
+            font-weight: bold;
+            opacity: 0;
+            margin-left: -40px;
+        }
+        .appear {
+            animation-name: textAppear;
+            animation-duration: 1.5s;
+            animation-timing-function: ease-out;
+            animation-fill-mode: forwards;
+        }
+        @keyframes textAppear {
+            to {
+                opacity: 1;
+                margin-left: 0;
+            }
+        }
+    </style>
+
+    <script type="text/javascript" src="lib/three.js"></script>
+    <script type="text/javascript" src="lib/OrbitControls.js"></script>
+    <script type="text/javascript" src="lib/HDRCubeTextureLoader.js"></script>
+    <script type="text/javascript" src="lib/OBJLoader.js"></script>
+    <script type="text/javascript" src="lib/Tween.js"></script>
+    <script type="text/javascript" src="lib/LegacyJSONLoader.js"></script>
+    <script type="text/javascript" src="lib/GLTFLoader.js"></script>
+
+    <script src="lib/DDSLoader.js"></script>
+    <script src="lib/MTLLoader.js"></script>
+    <script src="lib/OBJLoader.js"></script>
+
+</head>
+<body>
+
+  <div class="container">
+
+    <h3 id="myDIV" class="des float-left">Press Arrow keys</h3>
+
+    <!--webGL-->
+    <div id="web-gl">
+
+    </div>
+  </div>
+
+<script id="scriptScene0" type="text/javascript">
+
+    var activeScene, camera, renderer,activeCamera;
+    var cube, sphere, sphere2;
+    var scene1, scene2;
+    var step = 1, stepMax = 5;
+    var tween;
+    var props;
+    var controls;
+
+    window.addEventListener('keyup', onDocumentKeyUp, false);
+    window.addEventListener('resize', onWindowResize, false);
+
+    init();
+    animate();
+
+    // once everything is loaded, we run our Three.js stuff.
+    function init() {
+
+        //  Scene 1
+        scene1 = new THREE.Scene();
+        activeScene = scene1;
+        // create a camera, which defines where we're looking at.
+        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        //  Create a render and set the size
+        renderer = new THREE.WebGLRenderer({antialias: true});
+        renderer.setClearColor(new THREE.Color(0x000000));
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        //  Setting the active camera
+        activeCamera = camera;
+        //  Mouse control
+        controls = new THREE.OrbitControls(activeCamera, renderer.domElement);
+        //  Remove when using animation loop
+        //  Enable animation loop when using damping or authorisation
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.07;
+        controls.enableZoom = true;
+        //  Position and point the camera to the center of the scene
+        activeCamera.position.x = 100;
+        activeCamera.position.y = 80;
+        activeCamera.position.z = 200;
+        activeCamera.lookAt(scene1.position);
+        //controls.update() must be called after any manual changes to the camera's transform
+        camera.position.set( 0, 20, 100 );
+        controls.update();
+        //  add the output of the renderer to the html element
+        document.getElementById("web-gl").appendChild(renderer.domElement);
+        //fog
+        scene1.fog=new THREE.Fog(0xf80759,5,500);
+        //  Surface Texture
+        var texture = new THREE.TextureLoader().load('photo_2017-05-24_14-37-48.png');
+        texture.repeat.set(10, 10);
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.RepeatWrapping;
+        texture.magFilter = THREE.NearestFilter;
+        texture.minFilter = THREE.LinearMipMapLinearFilter;
+         //Surface Mesh
+         var surface = new THREE.PlaneGeometry(1300, 1350);
+        var surfaceMaterial = new THREE.MeshPhongMaterial({color: 0xcccccc, side: THREE.DoubleSide, map: texture});
+        var surfaceMesh = new THREE.Mesh(surface, surfaceMaterial);
+        surfaceMesh.rotateX(Math.PI / 2);
+        surfaceMesh.position.y = -50;
+        surfaceMesh.position.z = -300;
+        scene1.add(surfaceMesh);
+        //  Surface
+        var surfaceGeometry = new THREE.PlaneGeometry(300, 350);
+        var surfaceMaterial = new THREE.MeshPhongMaterial({color: 0xcccccc, side: THREE.DoubleSide});
+        var surfaceMesh = new THREE.Mesh(surfaceGeometry, surfaceMaterial);
+        surfaceMesh.rotateX(Math.PI / 2);
+        surfaceMesh.position.y = -50;
+        scene1.add(surfaceMesh.clone());
+        //  add spotlight
+        var spotLight = new THREE.SpotLight(0xAA5667);
+        //shoaa noor
+        spotLight.angle = 0.8;
+        //shadow
+        spotLight.penumbra = 0.05;
+        //light position
+        spotLight.position.set(0, 60, 20);
+        scene1.add(spotLight.clone());
+        // add subtle ambient lighting
+        // رنگ اطراف نور اصلی
+        var ambiColor = "#ffccff";
+        var ambientLight = new THREE.AmbientLight(ambiColor,0.4);
+        scene1.add(ambientLight.clone());
+        var cubeGeometry = new THREE.CubeGeometry(70,40,40);
+        var cubeMaterial = new THREE.MeshBasicMaterial({color: 0x454890});
+        cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+        var cube2Geometry = new THREE.TetrahedronGeometry(40 , 0);
+        var cube2Material = new THREE.MeshBasicMaterial({color: 0x454890});
+        cube2 = new THREE.Mesh(cube2Geometry, cube2Material);
+        cube2.position.x = -60;
+        cube2.position.y = 20;
+        scene1.add(cube);
+        scene1.add(cube2);
+        scene1.add(surfaceMesh.clone());
+        scene1.add(ambientLight.clone());
+        scene1.add(spotLight.clone());
+        //end of scene 1
+        // Scene 2
+        scene2 = new THREE.Scene();
+        scene2.add(surfaceMesh.clone());
+        //  1 create the  sphere wireFrame
+        var sphereGeometry = new THREE.SphereGeometry(15, 15, 30);
+        var sphereMaterial = new THREE.MeshPhongMaterial({color: 0x454890});
+        sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+        sphere.position.x = -60;
+        sphere.position.y = 20;
+        //  add the sphere to the scene
+        scene2.add(sphere);
+        scene2.add(ambientLight);
+        scene2.add(spotLight.clone());
+        //  1 create the  sphere wireFrame
+        var sphereGeometry2 = new THREE.SphereGeometry(15, 15, 30);
+        var sphereMaterial2 = new THREE.MeshPhongMaterial({color: 0x45aa90});
+        sphere2 = new THREE.Mesh(sphereGeometry2, sphereMaterial2);
+        sphere2.position.x = -70;
+        sphere2.scale.set(1 / 2, 0.5, 0.5);
+        scene2.add(sphere2);
+        var target = {x: 80, y: 0, z: -50};
+        tween = new TWEEN.Tween(sphere2.position).to(target, 7000);
+        tween.delay(300);
+        /*(http://sole.github.io/tween.js/examples/03_graphs.html) from tween.js ,
+        Look this site for more ..!
+         */
+        tween.easing(TWEEN.Easing.Exponential.InOut);
+        //  end of scene 2
+    }
+    function animate() {
+        var t = (Date.now() / 1000);
+        //  Then we periodically update the tweens we got. This code fits well in the animate loop.
+        TWEEN.update();
+        //  render the scene
+       // renderer.render(activeScene, camera);
+        renderer.render(scene1, activeCamera);
+        requestAnimationFrame(animate);
+         controls.update();
+        //  scene 2 transform ( Move, Rotate, Scale) cube
+        //  steps increase and decrease with arrow keys.2
+        if (activeScene == scene1) {
+            var div = $('.transform');
+            if (step == 1) {
+                cube.rotation.y += 0.01;
+                div.text('{Object}.rotation.y');
+            }
+            else if (step == 2) {
+                cube.rotation.x += 0.01;
+                div.text('{Object}.rotation.x');
+            }
+            else if (step == 3) {
+                if (cube.position.x < 30)
+                    cube.position.x += 0.1;
+                div.text('{Object}.position.x Translate?');
+            }
+            else if (step == 4) {
+                if (cube.scale.x < 4) {
+                    cube.scale.x += 0.01;
+                    cube.scale.y += 0.01;
+                    cube.scale.z += 0.01;
+                }
+                div.text('{Object}.scale.*x,y,z*');
+            }
+            else if (step == 5) {
+                if (cube.scale.x > -4) {
+                    cube.scale.x -= 0.01;
+                    cube.scale.y -= 0.01;
+                    cube.scale.z -= 0.01;
+                }
+                div.text('{Object}.scale.*x,y,z* value -');
+            }
+        }
+        else {
+            $('.transform').removeClass('appear');
+        }
+        sphere.position.x = 20 + (10 * (Math.cos(t) * 3));
+        sphere.position.y = 2 + (10 * Math.abs(Math.sin(t) * 3));
+        requestAnimationFrame(animate);
+    }
+    function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+    //keyboard for scene1
+    function onDocumentKeyUp(event) {
+        var div = $('.transform');
+        if (event.keyCode == 39 || event.keyCode == 32) {
+            $('.transform').addClass('appear');
+            step += 1;
+        }
+        else if (event.keyCode == 37) {
+            step -= 1;
+        }
+        if (step > stepMax)
+            step = stepMax;
+        else if (step < 1)
+            step = 1;
+        console.log(step);
+    }
+</script>
+
+<div class="transform">
+
+</div>
+</body>
+</html>

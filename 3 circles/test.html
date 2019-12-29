@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <title>Amir hossein asadi</title>
+    <script type="text/javascript" src="libs/three.js"></script>
+    <script src="libs/OrbitControls.js"></script>
+    <script src="libs/TrackballControls.js"></script>
+    <script src="libs/OrbitControls.js"></script>
+
+
+
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Div which will hold the Output -->
+<div id="WebGL-output">
+</div>
+
+<!-- Javascript code that runs our Three.js examples -->
+<script type="text/javascript">
+
+    // once everything is loaded, we run our Three.js stuff.
+    function init() {
+
+        var scene = new THREE.Scene();  // create a scene, that will hold all our elements such as objects, cameras and lights.
+
+        var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);    // create a camera, which defines where we're looking at.
+
+        // position and point the camera to the center of the scene
+        camera.position.x = -30;
+        camera.position.y = 140;
+        camera.position.z = 200;
+        camera.lookAt(scene.position);
+        var controls = new THREE.OrbitControls( camera );
+
+        controls.mouseButtons = {
+            ORBIT: THREE.MOUSE.RIGHT,
+            ZOOM: THREE.MOUSE.MIDDLE,
+            PAN: THREE.MOUSE.LEFT
+        };
+
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.12;
+        controls.rotateSpeed = 0.08;
+        controls.autoRotate = false;
+        controls.autoRotateSpeed = 0.08;
+        controls.maxPolarAngle = Math.PI/2; // it does not let the camera go under the plane or space
+
+
+
+        var renderer = new THREE.WebGLRenderer({antialias:true});   // create a render and set the size
+        renderer.setClearColorHex();
+        renderer.setClearColor(new THREE.Color(0xC0171B));
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild( renderer.domElement );
+
+        //Create a new ambient light
+        var light = new THREE.AmbientLight( 0x888888 );
+        scene.add( light );
+
+        //Create a new directional light
+        var light = new THREE.DirectionalLight( 0xfdfcf0, 1 );
+        light.position.set(20,45,0);
+        scene.add( light );
+
+
+        var texture = new THREE.TextureLoader().load( 'texture/space2.png' );
+        var spaceGeometry = new THREE.PlaneGeometry(300, 300, 1, 1);    // create the space
+        var spaceMaterial = new THREE.MeshNormalMaterial({
+            map: texture,
+            side: THREE.DoubleSide
+        });
+        var space = new THREE.Mesh(spaceGeometry, spaceMaterial);
+
+        // rotate and position the space
+        space.rotation.x = -0.5 * Math.PI;
+        space.position.x = 15;
+        space.position.y = 0;
+        space.position.z = 0;
+
+        // add the space to the scene
+        scene.add(space);
+
+        // create sun
+        var sunGeometry = new THREE.SphereGeometry(20, 200, 200);
+        var sunMaterial = new THREE.MeshPhongMaterial({
+            map: new THREE.ImageUtils.loadTexture("texture/sun.jpg"),
+            color:0xffffff
+
+        });
+        var sun = new THREE.Mesh(sunGeometry, sunMaterial);
+
+        
+        // position the sun
+        sun.position.x = 60;
+        sun.position.y = 60;
+        sun.position.z = 2;
+
+        // add the sphere to the scene
+        scene.add(sun);
+
+        // create earth
+        var earthGeometry = new THREE.SphereGeometry(8, 200, 200);
+        var earthMaterial = new THREE.MeshPhongMaterial({
+            map: new THREE.ImageUtils.loadTexture("texture/earth.jpg"),
+            color: 0xff0000
+        });
+        var earth = new THREE.Mesh(earthGeometry, earthMaterial);
+
+        // position the earth
+        earth.position.x = 5;
+        earth.position.y = 55;
+        earth.position.z = 0;
+
+        // add the earth to the scene
+        scene.add(earth);
+
+        // create clouds
+        var cloudsGeometry = new THREE.SphereGeometry(8.5, 200, 200);
+        var cloudsMaterial = new THREE.MeshPhongMaterial({
+            map: new THREE.ImageUtils.loadTexture("texture/c.png"),
+            opacity: 0.1
+        });
+        var clouds = new THREE.Mesh(cloudsGeometry, cloudsMaterial);
+
+        // position the clouds
+        clouds.position.x = 5;
+        clouds.position.y = 55;
+        clouds.position.z = 0;
+
+        // add the clouds to the scene
+        //scene.add(clouds);
+
+        // create moon
+        var moonGeometry = new THREE.SphereGeometry(4, 200, 200);
+        var moonMaterial = new THREE.MeshPhongMaterial({
+            map: new THREE.ImageUtils.loadTexture("texture/moon.jpg"),
+            color: 0xff0000
+        });
+        var moon = new THREE.Mesh(moonGeometry, moonMaterial);
+
+        // position the moon
+        moon.position.x = -25;
+        moon.position.y = 55;
+        moon.position.z = 0;
+
+        // add the moon to the scene
+        scene.add(moon);
+
+        function render() {
+            requestAnimationFrame(render);
+            earth.rotation.y += 0.005;
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        window.addEventListener( 'resize', onWindowResize, false );
+        render();
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize( window.innerWidth, window.innerHeight );
+        }
+
+        // add the output of the renderer to the html element
+        document.getElementById("WebGL-output").appendChild(renderer.domElement);
+
+        // render the scene
+        renderer.render(scene, camera);
+    }
+    window.onload = init;
+
+</script>
+</body>
+</html>

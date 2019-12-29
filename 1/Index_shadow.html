@@ -1,0 +1,207 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Shadow</title>
+  <style>
+
+    body {
+    @include display(flex);
+    @include align-content(center);
+      color: #353535;
+      min-height: 100vh;
+      font-family: 'Open Sans', sans-serif;
+      font-size: 4px;
+      text-align: center;
+      background-color: lightgreen;
+      margin: 0 auto;
+      overflow: hidden;
+
+    }
+
+    .container {
+      background-color: white;
+      box-shadow: 0 0 4px 1px #BBB;
+      text-align: center;
+      width: 100%;
+      height: 100%;
+    }
+
+    #web-gl {
+      height: 100%;
+      width: 100%;
+    }
+
+  </style>
+  <script type="text/javascript" src="lib/three.js"></script>
+  <script type="text/javascript" src="lib/ShadowMapViewer.js"></script>
+  <script type="text/javascript" src="lib/dat.gui.min.js"></script>
+
+
+</head>
+<body>
+
+
+<div class="container">
+
+
+  <div id="web-gl">
+
+  </div>
+</div>
+
+
+<script id="scriptScene0" type="text/javascript">
+
+  //  Basic Variables
+  var camera, renderer;
+
+  //  Shape Variables
+  var scene, sphere, torusKnot;
+  var spotLight, ambientLight, dirLight, pointLight;
+  var texture;
+  var controls;
+  var cube;
+
+  var clock = new THREE.Clock();
+
+
+  init();
+  animate();
+
+  function init() {
+
+    scene = new THREE.Scene();
+
+    //  Create a camera, which defines where we're looking at.
+    camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+    //  Create a render and set the size
+    renderer = new THREE.WebGLRenderer({antialias: true});
+    renderer.setClearColor(new THREE.Color(0x000000));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+
+
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    //  Position and point the camera to the center of the scene
+    camera.position.x = 30;
+    camera.position.y = 90;
+    camera.position.z = 300;
+    camera.lookAt(scene.position);
+
+    //  Add the output of the renderer to the html element
+    document.getElementById("web-gl").appendChild(renderer.domElement);
+
+    ambientLight = new THREE.AmbientLight(0xffffff); // soft yellow light
+    scene.add(ambientLight);
+    //  AmbientLight.visible=false;
+
+    //  Add Spotlight
+    spotLight = new THREE.SpotLight(0xffffff);
+    spotLight.angle = Math.PI / 2.5;
+    spotLight.penumbra = 0.3;
+    spotLight.position.set(20, 60, 5);
+    spotLight.castShadow = true;
+    spotLight.shadow.camera.near = 20;
+    spotLight.shadow.camera.far = 200;
+    spotLight.shadow.mapSize.width = 1024;
+    spotLight.shadow.mapSize.height = 1024;
+    scene.add(spotLight);
+    spotLight.visible = true;
+
+    //  Add Directional Light
+    dirLight = new THREE.DirectionalLight(0xffffff);
+    dirLight.position.set(95, 5, 55);
+    dirLight.castShadow = true;
+    dirLight.shadow.camera.near = 0.1;
+    dirLight.shadow.camera.far = 500;
+    dirLight.shadow.camera.right = 550;
+    dirLight.shadow.camera.left = -550;
+    dirLight.shadow.camera.top = 550;
+    dirLight.shadow.camera.bottom = -550;
+    dirLight.shadow.mapSize.width = 2048;
+    dirLight.shadow.mapSize.height = 2048;
+
+    /*
+    We can use a camera helper to see how shadow camera is looking at our scene.
+
+    var helper = new THREE.CameraHelper( dirLight.shadow.camera );
+    scene.add( helper );
+    */
+
+    scene.add(dirLight);
+    dirLight.visible = false;
+
+    //  Add Point Light
+    pointLight = new THREE.PointLight(0xffffff, 1, 800, 4);
+    pointLight.position.set(20, 50, 50);
+    pointLight.castShadow = true;
+    pointLight.shadow.camera.near = 1;
+    pointLight.shadow.camera.far = 200;
+    scene.add(pointLight);
+    pointLight.visible = false;
+
+
+    //  Surface
+
+    texture = new THREE.TextureLoader().load('texture/floor.jpg');
+
+    texture.repeat.set(10, 10);
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.RepeatWrapping;
+
+    texture.magFilter = THREE.NearestFilter;
+    texture.minFilter = THREE.NearestFilter;
+
+
+    var surface = new THREE.PlaneGeometry(300, 350);
+    var surfaceMaterial = new THREE.MeshPhongMaterial({color: 0xcccccc, side: THREE.DoubleSide, map: texture});
+    var surfaceMesh = new THREE.Mesh(surface, surfaceMaterial);
+    surfaceMesh.rotateX(Math.PI / 2);
+    surfaceMesh.position.y = -50;
+    surfaceMesh.receiveShadow = true;
+    scene.add(surfaceMesh);
+
+    //  Cube
+    var cubeGeometry = new THREE.BoxGeometry(55, 25, 1);
+    cube = new THREE.Mesh(cubeGeometry);
+    cube.position.set(20, 30, 0);
+    cube.castShadow = true;
+    cube.receiveShadow = true;
+
+    scene.add(cube);
+
+
+  }
+
+
+  function animate() {
+
+    //  Render the scene
+    renderer.render(scene, camera);
+    var t = (Date.now() / 1000);
+
+    var frameTime = clock.getDelta();
+
+
+    cube.rotation.y += 1.0 * frameTime;
+    cube.rotation.z += 1.0 * frameTime;
+
+    cube.position.z = Math.sin(t / 2) * 60;
+    cube.position.x = Math.cos(t / 2) * 40;
+
+
+    requestAnimationFrame(animate);
+  }
+
+
+
+
+</script>
+
+
+</body>
+</html>
